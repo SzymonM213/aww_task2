@@ -15,8 +15,6 @@
             <i class="fa fa-caret-down"></i>
           </button>
           <div class="dropdown-content">
-            <a href="{% url 'compiler:add_directory' %}">Dodaj Katalog</a>
-            <a href="{% url 'compiler:add_file' %}">Dodaj Plik</a>
             <a href="#">Link 3</a>
           </div>
         </div> 
@@ -25,9 +23,10 @@
             <i class="fa fa-caret-down"></i>
           </button>
           <div class="dropdown-content">
-            <a href="#">Link 1</a>
-            <a href="#">Link 2</a>
-            <a href="#">Link 3</a>
+            <a href="{% url 'compiler:add_directory' %}">Dodaj Katalog</a>
+            <a href="{% url 'compiler:add_file' %}">Dodaj Plik</a>
+            <a href="{% url 'compiler:remove_directory' %}">Usuń Katalog</a>
+            <a href="{% url 'compiler:remove_file' %}">Usuń Plik</a>
           </div>
         </div> 
         <div class="dropdown">
@@ -51,17 +50,16 @@
           </div>
         </div> 
         <div class="navbar-right">
+          <a href="{% url 'compiler:logout' %}">Wyloguj</a>
+        </div>
+        <div class="navbar-right">
           <button type="button" class="theme" onclick="switchTheme()">Change theme</button>
         </div>
       </div>
 
       <div class="file-selection">
         <ul class = "tree">
-          {% for dir in directories %}
-            {% if dir.parent == None %}
-              {{ dir.tree | safe }}
-            {% endif %}
-          {% endfor %}
+          {{ root.root | safe }}
         </ul>
       </div>
 

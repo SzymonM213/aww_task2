@@ -1,0 +1,16 @@
+{% block content %}
+<h1>usuń {{ element }}</h1>
+<form method="POST">
+    {% csrf_token %}
+    <fieldset>
+        <legend><h2>Wybierz {{ element }}:</h2></legend>
+        {% for element in elements %}
+            {% if element.parent %}
+                <input type="radio" name="id" value="{{ element.id }}">
+                <label for="choice{{ forloop.counter }}">{{ element.name }}</label><br>
+            {% endif %}
+        {% endfor %}
+    </fieldset>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}
