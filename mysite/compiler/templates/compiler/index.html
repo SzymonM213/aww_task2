@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Compiler</title>
+    {% load static %}
+    <link href="{% static 'compiler/style.css' %}" rel="stylesheet">
+  </head>
+  <body>
+    <div class="grid-container">
+      <div class="navbar">
+        <div class="dropdown">
+          <button class="dropbtn">Plik 
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <a href="{% url 'compiler:add_directory' %}">Dodaj Katalog</a>
+            <a href="{% url 'compiler:add_file' %}">Dodaj Plik</a>
+            <a href="#">Link 3</a>
+          </div>
+        </div> 
+        <div class="dropdown">
+          <button class="dropbtn">Edycja 
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <a href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
+        </div> 
+        <div class="dropdown">
+          <button class="dropbtn">Opcje 
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <a href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
+        </div> 
+        <div class="dropdown">
+          <button class="dropbtn">Pomoc 
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <a href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
+        </div> 
+        <div class="navbar-right">
+          <button type="button" class="theme" onclick="switchTheme()">Change theme</button>
+        </div>
+      </div>
+
+      <div class="file-selection">
+        <ul class = "tree">
+          {% for dir in directories %}
+            {% if dir.parent == None %}
+              {{ dir.tree | safe }}
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+
+      <textarea class="program-text">
+#include &lt;reg52.h&gt;
+void setup()
+{
+  // set timer 0 mode 1
+  TMOD = 0x01;
+  TH0 = 0x4C;
+  TL0 = 0x00;
+
+  // start timer 0
+  TR0 = 1;
+  // enable timer 0 interrupt
+  ET0 = 1;
+  // enable all interrupt
+  EA = 1;
+}
+
+void loop()
+{
+  if(count%20 == 0)
+  {
+    P0_0 = !P0_0;
+    count = 0;
+  }
+}
+
+void main()
+{
+  setup();
+  while(1) loop();
+}
+
+void timer0() __interrupt 1
+{
+  count++;
+}
+          </textarea>
+          <!-- </div> -->
+
+      <div class="code-fragment">
+        <textarea cols="5">
+void setup()
+{
+  // set timer 0 mode 1
+  TMOD = 0x01;
+  TH0 = 0x4C;
+  TL0 = 0x00;
+
+  // start timer 0
+  TR0 = 1;
+  // enable timer 0 interrupt
+  ET0 = 1;
+  // enable all interrupt
+  EA = 1;
+}
+        </textarea>
+      </div>
+      <div class="tabs">
+        <div class="nav">
+          <button type="button" class="trapezium">
+            tab1
+          </button>
+          <button type="button" class="trapezium">
+              tab2
+          </button>
+          <button type="button" class="trapezium">
+            tab3
+          </button>
+          <button type="button" class="trapezium">
+            tab4
+          </button>
+      </div>
+      </div>
+    </div>
+      <script src="{% static 'compiler/main.js' %}"></script>
+  </body>
+</html>

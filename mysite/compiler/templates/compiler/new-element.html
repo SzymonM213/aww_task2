@@ -1,0 +1,16 @@
+{% block content %}
+<h1>Dodaj nowy {{ element }}</h1>
+<form method="POST">
+    {% csrf_token %}
+    <fieldset>
+        <legend><h2>Wybierz lokalizację:</h2></legend>
+        {% for dir in directories %}
+            <input type="radio" name="parent" value="{{ dir.id }}">
+            <label for="choice{{ forloop.counter }}">{{ dir.name }}</label><br>
+        {% endfor %}
+    </fieldset>
+    <input type="text" name="element_name" placeholder="Name of new directory" required>
+    <input type="text" name="description" placeholder="Description of new directory" required>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}
