@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.db.models import QuerySet
+from .forms import UploadFileForm
+from django.http import HttpResponseRedirect
 
 import datetime
 
@@ -14,11 +16,17 @@ from django.views import generic
 
 @login_required(login_url="/accounts/login/")
 def index(request):
+    file = None
+    if request.method == 'POST':
+        file_id = request.POST.get('file')
+        file = File.objects.get(id=file_id)
     if len(request.user.directory_set.all()) == 0:
         d = Directory(name="root", owner=request.user)
         d.save()
     root = request.user.directory_set.all().get(parent = None)
-    context = {'root': root}
+    context = {'root': root, 'file': file}
+    if file != None:
+        print("wypisuje: ", file.name)
     return render (
         request,
         'compiler/index.html',
@@ -37,33 +45,58 @@ def add_directory(request):
     context = {'directories': request.user.directory_set.all(), 'element': 'katalog'}
     return render (
         request,
-        'compiler/new-element.html',
+        'compiler/new-directory.html',
         context,
     )
 
 def add_file(request):
     if request.method == 'POST':
-        name = request.POST.get('element_name')
         parent_id = request.POST.get('parent')
-        text = request.POST.get('content')
+        parent = Directory.objects.get(id=parent_id)
+        file = request.FILES['file']
+        content = file.read().decode('latin-1')
         if parent_id != "":
             parent = Directory.objects.get(id=parent_id)
-            f = File(name=name, parent=parent, owner=request.user)
+            f = File(name=file.name, parent=parent, owner=request.user)
             f.save()
             parent.save()
         else:
-            f = File(name=name, owner=request.user)
+            f = File(name=file.name, owner=request.user)
             f.save()
-        sections = Section.split_file(text, f)
+        sections = Section.split_file(content, f)
         for section in sections:
             section.save()
         return redirect('compiler:index')
     context = {'directories': request.user.directory_set.all(), 'element': 'plik'}
     return render (
         request,
-        'compiler/new-element.html',
+        'compiler/new-file.html',
         context,
     )
+
+# def add_file(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('element_name')
+#         parent_id = request.POST.get('parent')
+#         text = request.POST.get('content')
+#         if parent_id != "":
+#             parent = Directory.objects.get(id=parent_id)
+#             f = File(name=name, parent=parent, owner=request.user)
+#             f.save()
+#             parent.save()
+#         else:
+#             f = File(name=name, owner=request.user)
+#             f.save()
+#         sections = Section.split_file(text, f)
+#         for section in sections:
+#             section.save()
+#         return redirect('compiler:index')
+#     context = {'directories': request.user.directory_set.all(), 'element': 'plik'}
+#     return render (
+#         request,
+#         'compiler/new-element.html',
+#         context,
+#     )
 
 def remove_directory(request):
     if request.method == 'POST':
@@ -86,7 +119,7 @@ def remove_file(request):
         f.last_accessibility_change = datetime.datetime.now()
         f.save()
         return redirect('compiler:index')
-    context = {'elements': request.user.file_set.all(), 'element': 'katalog'}
+    context = {'elements': request.user.file_set.all(), 'element': 'plik'}
     return render (
         request,
         'compiler/remove-element.html',

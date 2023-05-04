@@ -313,3 +313,13 @@ ul details[open] > summary::before {
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
+.file {
+    border: none;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.file:hover {
+    background-color: var(--hover-color);
+}

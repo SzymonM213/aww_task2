@@ -10,11 +10,7 @@
         {% endfor %}
     </fieldset>
     <input type="text" name="element_name" placeholder="Nazwa" required>
-    <input type="text" name="description" placeholder="Opis" required>
-    {% if element == "plik" %}
-    <br>
-        <textarea cols="120" rows="40" type="text" name="content" placeholder="Treść" required></textarea>
-    {% endif %}
+    <input type="text" name="description" placeholder="Opis">
     <input type="submit" value="Submit">
 </form>
 {% endblock %}

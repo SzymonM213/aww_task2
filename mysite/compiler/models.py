@@ -76,40 +76,40 @@ class Section(models.Model):
             if re.search(proc_pattern, lines[i]):
                 current_begin = i
                 while i < len(lines) and re.search(proc_pattern, lines[i]):
-                    current_section_text += lines[i] + '\n'
+                    current_section_text += lines[i]
                     i += 1
                 result.append(Section(text=current_section_text, type='procedure', begin=current_begin, end=i-1, file=file))
                 current_section_text = ''
             elif re.search(comment_pattern, lines[i]):
                 current_begin = i
                 while i < len(lines) and re.search(comment_pattern, lines[i]):
-                    current_section_text += lines[i] + '\n'
+                    current_section_text += lines[i]
                     i += 1
                 result.append(Section(text=current_section_text, type='comment', begin=current_begin, end=i-1, file=file))
                 current_section_text = ''
             elif re.search(directive_pattern, lines[i]):
                 current_begin = i
                 while i < len(lines) and re.search(directive_pattern, lines[i]):
-                    current_section_text += lines[i] + '\n'
+                    current_section_text += lines[i]
                     i += 1
                 result.append(Section(text=current_section_text, type='directive', begin=current_begin, end=i-1, file=file))
                 current_section_text = ''
             elif re.search(var_pattern, lines[i]):
                 current_begin = i
                 while i < len(lines) and re.search(var_pattern, lines[i]):
-                    current_section_text += lines[i] + '\n'
+                    current_section_text += lines[i]
                     i += 1
                 result.append(Section(text=current_section_text, type='variable', begin=current_begin, end=i-1, file=file))
                 current_section_text = ''
             elif re.search(asm_pattern, lines[i]):
                 current_begin = i
                 while i < len(lines) and re.search(asm_pattern, lines[i]):
-                    current_section_text += lines[i] + '\n'
+                    current_section_text += lines[i]
                     i += 1
                 result.append(Section(text=current_section_text, type='asm', begin=current_begin, end=i-1, file=file))
                 current_section_text = ''
             else:
-                result.append(Section(text=lines[i]+"\n", type='undifined', begin=i, end=i, file=file))
+                result.append(Section(text=lines[i], type='undifined', begin=i, end=i, file=file))
                 i += 1
         return result
 
@@ -125,7 +125,7 @@ class File(models.Model):
 
     def tree(self):
         if self.accessibility:
-            return '<li class="file">' + self.name + "</li>"
+            return '<li><button class="file" type="submit" name="file" value="' + str(self.id) + '">' + self.name + '</button></li>'
         else:
             return ""
         
@@ -133,5 +133,5 @@ class File(models.Model):
     def content(self):
         result = ''
         for section in self.section_set.all():
-            result += section.text + '\n'
+            result += section.text
         return result

@@ -11,4 +11,5 @@ urlpatterns = [
     path('remove-dir/', views.remove_directory, name='remove_directory'),
     path('remove-file/', views.remove_file, name='remove_file'),
     path('logout/', views.logout_view, name='logout'),
+    # path('upload/', views.upload_file, name='upload_file')
 ]
