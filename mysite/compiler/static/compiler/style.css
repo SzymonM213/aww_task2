@@ -1,33 +1,33 @@
 .light {
     background-color: #f1f1f1;
-    --menu-color: #ffe684;
+    --menu-color: #e4d8b4;
     --text-color: #333;
-    --file-selector-bg: #fffdda93;
-    --program-text-bg: #fff6de;
-    --code-fragment-bg: #fffdda93;
+    --file-selector-bg: #F5EDCE;
+    --program-text-bg: #d2d4e1;
+    --code-fragment-bg: #a0cade;
     --tabs-bg: #fff6de;
-    --tabs-color: #ffbb3d;
-    --hover-color: #c7a000;
-    --second-text: #b6b6b6;
-    --active-color: #ffa600;
-    --asm-hover-color: #e8ddaf;
-    --header-hover-color: #c3ba96;
+    --tabs-color: #F5EDCE;
+    --hover-color: #d0c5a4;
+    --second-text: #8a8a8a;
+    --active-color: #fff6de;
+    --asm-hover-color: #cfeeff;
+    --header-hover-color: #a4e1ff;
 }
 
 .dark {
-    background-color: #000000;
-    --menu-color: #000000;
-    --text-color: #f1f1f1;
-    --file-selector-bg: #002c7d;
-    --program-text-bg: #001344;
-    --code-fragment-bg: #00035f;
+    background-color: #0c0c0e;
+    --menu-color: #0d0027;
+    --text-color: #e9cbcb;
+    --file-selector-bg: #090044;
+    --program-text-bg: #03001a;
+    --code-fragment-bg: #070033;
     --tabs-bg: #24225d;
-    --tabs-color: #00b3ff;
+    --tabs-color: #2100a6;
     --hover-color: #625f80;
     --second-text: #b6b6b6;
-    --active-color: #00b3ff;
-    --asm-hover-color: #827cc7;
-    --header-hover-color: #4b467e;
+    --active-color: #24225d;
+    --asm-hover-color: #372da1;
+    --header-hover-color: #0c0090;
 }
 
 html {
@@ -142,6 +142,27 @@ body {
     }  
 }
 
+.program-text {
+    border-top: 1px solid var(--text-color);
+    border-left: 1px solid var(--text-color);
+    border-right: 2px solid var(--text-color);
+    border-bottom: 2px solid var(--text-color);
+}
+
+.file-selection {
+    border-right: 1px solid var(--text-color);
+    border-top: 1px solid var(--text-color);
+}
+
+.code-fragment {
+    border-left: 1px solid var(--text-color);
+    border-top: 1px solid var(--text-color);
+}
+
+.navbar {
+    border-bottom: 1px solid var(--text-color);
+}
+
 .navbar div button {
     text-align: center;
     display: block;
@@ -184,7 +205,7 @@ textarea {
     margin: 4px 2px;
     cursor: pointer;
     border-radius: 50px;
-    box-shadow: 0 9px #999;
+    box-shadow: 0 9px var(--hover-color);
     width: 100%;
     height: 100%;
     box-sizing: border-box;
@@ -238,7 +259,7 @@ ul summary::before {
     left: -1.05em;
     top: 0.55em;
     content:"+";
-    background:var(--tabs-color);
+    background:var(--program-text-bg);
     display:block;
     width: 15px;
     height: 15px;
@@ -291,7 +312,6 @@ ul details[open] > summary::before {
     position: absolute;
     background-color: var(--menu-color);
     min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 3;
 }
   
@@ -320,7 +340,7 @@ ul details[open] > summary::before {
 }
   
 .dropdown-content button:hover {
-    background-color: #ddd;
+    background-color: var(--hover-color);
 }
   
 .dropdown:hover .dropdown-content {
@@ -349,6 +369,7 @@ ul details[open] > summary::before {
     float: left;
     position: relative;
     background-color: var(--tabs-color);
+    color: var(--text-color);
     clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
     overflow: scroll;
 }
@@ -374,7 +395,6 @@ ul details[open] > summary::before {
 
 .code-fragment {
     overflow: scroll;
-    /* font-size: small; */
     resize: none;
     width: 100%;
     height: 100%;

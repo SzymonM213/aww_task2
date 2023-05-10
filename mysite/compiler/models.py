@@ -47,7 +47,7 @@ class Directory(models.Model):
     
     def delete(self):
         self.access = False
-        self.last_access_change = timezone.now
+        self.last_access_change = timezone.now()
         for dir in self.directory_set.all():
             dir.delete()
         for file in self.file_set.all():
@@ -179,7 +179,6 @@ class File(models.Model):
 
     def compile(self, args):
         f = open(str(self.id) + '.c', 'w+')
-        print(self.content())
         f.write(self.content())
         f.close()
         command = ["sdcc", "-S"]
@@ -187,7 +186,6 @@ class File(models.Model):
         p = subprocess.run(command + args + [f'{self.id}.c'], capture_output=True)
         errors = p.stderr.decode('utf-8').splitlines()
         for error in errors:
-            print(error)
             if ":" not in error:
                 continue
             if "warning" in error:
@@ -207,14 +205,12 @@ class File(models.Model):
                         section.status_data = error_details
                         section.save()
         os.remove(str(self.id) + '.c')
-        print(p.returncode)
         if os.path.isfile(str(self.id) + '.asm') and p.returncode == 0:
             f = open(str(self.id) + '.asm', 'r')
             result = f.read()
             f.close()
-            # os.remove(str(self.id) + '.asm')
+            os.remove(str(self.id) + '.asm')
             return result
-        print(p.stderr.decode('utf-8'))
         return 'error'
     
     def display_compilation(self, text):

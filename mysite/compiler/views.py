@@ -23,6 +23,7 @@ def index(request):
     if request.method == 'POST':
         file_id = request.POST.get('file')
         if file_id != None:
+            print(file_id)
             file = File.objects.get(id=file_id)
         if request.POST.get('remove_section') != None:
             context = {'file': file}
