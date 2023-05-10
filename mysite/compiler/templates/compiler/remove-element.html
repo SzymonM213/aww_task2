@@ -5,7 +5,7 @@
     <fieldset>
         <legend><h2>Wybierz {{ element }}:</h2></legend>
         {% for element in elements %}
-            {% if element.parent %}
+            {% if element.parent and element.access %}
                 <input type="radio" name="id" value="{{ element.id }}">
                 <label for="choice{{ forloop.counter }}">{{ element.name }}</label><br>
             {% endif %}

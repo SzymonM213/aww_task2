@@ -15,7 +15,17 @@
             <i class="fa fa-caret-down"></i>
           </button>
           <div class="dropdown-content">
-            <a href="#">Link 3</a>
+            {% block content %}
+            <form method="POST">
+              {% csrf_token %}
+            {% if file %}
+              <input type="hidden" name="file" value="{{ file.id }}">
+              <button type="submit">Zapisz</button>
+              <button type="submit" name="compile">Kompiluj</button>
+              {% comment %} <a href="{% url 'compiler:remove_section' %}" onclick="document.querySelector('form').submit();">Usuń sekcję</a {% endcomment %}
+              <a href="{% url 'compiler:remove_section' %}?file_id={{ file.id }}">Usuń sekcję</a>
+            {% endif %}
+            {% if compile_result_display %}<button onclick="downloadNasm()">Pobierz wynik kompilacji</a>{% endif %}
           </div>
         </div> 
         <div class="dropdown">
@@ -48,7 +58,7 @@
             <a href="#">Link 2</a>
             <a href="#">Link 3</a>
           </div>
-        </div> 
+        </div>
         <div class="navbar-right">
           <a href="{% url 'compiler:logout' %}">Wyloguj</a>
         </div>
@@ -58,61 +68,92 @@
       </div>
 
       <div class="file-selection">
-        <form method="POST">
           {% csrf_token %}
           <ul class = "tree">
             {{ root.root | safe }}
           </ul>
-        </form>
+      </div>
+
+      <div class="program-text">
+        <label class="file_name">{{ file.path }}</label>
+        <textarea name="content">{% if file %}{{ file.content }}{% endif %}</textarea>
       </div>
       
-
-      <!-- <form method="POST">
-        {% csrf_token %}
-        <div class="program">
-          <textarea class="program-text" name="program-text">{% if file %}{{ file.content }}{% endif %}</textarea>
-          <div class="code-fragment">
-            <textarea cols="5"> -->
-      <textarea class="program-text">{% if file %}{{ file.content }}{% endif %}</textarea> -->
-
-      
-      
-      
-      <div class="code-fragment">
-        <textarea cols="5">
-void setup()
-{
-  // set timer 0 mode 1
-  TMOD = 0x01;
-  TH0 = 0x4C;
-  TL0 = 0x00;
-
-  // start timer 0
-  TR0 = 1;
-  // enable timer 0 interrupt
-  ET0 = 1;
-  // enable all interrupt
-  EA = 1;
-}
-        </textarea>
-      </div>
+      <div class="filename" id="nasm-filename">{% if file %}{{ nasm_filename | safe }}{% endif %}</div>
+      <div class="code-fragment-raw" id="to-download">{% if compile_result %}{{ compile_result | safe}}{% endif %}</div>
+      <div class="code-fragment">{% if compile_result_display %}{{ compile_result_display | safe}}{% endif %}</div>
       <div class="tabs">
         <div class="nav">
-          <button type="button" class="trapezium">
-            tab1
+
+          <button class="trapezium" type="button" onclick = "openTab(event, 'STANDARD')" id="defaultOpen">
+            STANDARD
           </button>
-          <button type="button" class="trapezium">
-              tab2
+          <button class="trapezium" type="button" onclick = "openTab(event, 'OPTYMALIZACJE')">
+            OPTYMALIZACJE
           </button>
-          <button type="button" class="trapezium">
-            tab3
+          <button class="trapezium" type="button" onclick = "openTab(event, 'PROCESOR')">
+            PROCESOR
           </button>
-          <button type="button" class="trapezium">
-            tab4
+          <button class="trapezium" type="button" onclick = "openTab(event, 'ZALEŻNE')">
+            ZALEŻNE 
           </button>
-      </div>
+        </div>
+        <div id="STANDARD" class="tab-content">
+          <input type="radio" name="standard" value="--std-c89">
+          <label>C89</label><br>
+          <input type="radio" name="standard" value="--std-c99">
+          <label>C99</label><br>
+          <input type="radio" name="standard" value="--std-c11">
+          <label>C11</label><br>
+        </div>
+        <div id="OPTYMALIZACJE" class="tab-content">
+          <input type="checkbox" name="nogcse" id="nogcse" onclick="toggleSelection('nogcse')">
+          <label>nogcse</label><br>
+          <input type="checkbox" name="noinvariant" id="noinvariant" onclick="toggleSelection('noinvariant')">
+          <label>noinvariant</label><br>
+          <input type="checkbox" name="noinduction" id="noinduction" onclick="toggleSelection('noinduction')">
+          <label>noinduction</label><br>
+        </div>
+        <div id="PROCESOR" class="tab-content">
+          <input type="radio" name="processor" value="-mmcs51" onclick="showDep(event, 'MCS51')" id="defaultChosen">
+          <label>MCS51</label><br>
+          <input type="radio" name="processor" value="-mz80" onclick="showDep(event, 'Z80')">
+          <label>Z80</label><br>
+          <input type="radio" name="processor" value="-mstm8" onclick="showDep(event, 'STM8')">
+          <label>STM8</label><br>
+        </div>
+        <div id="ZALEŻNE" class="tab-content">
+          <div id="MCS51" class="dependent-content">
+            <input type="radio" name="options" value="--model-small">
+            <label>small model</label><br>
+            <input type="radio" name="options" value="--model-medium ">
+            <label>medium model</label><br>
+            <input type="radio" name="options" value="--model-large">
+            <label>large model</label><br>
+            <input type="radio" name="options" value="--model-huge">
+            <label>huge model</label><br>
+          </div>
+          <div id="Z80" class="dependent-content">
+            <input type="radio" name="options" value="--emit-externs">
+            <label>emit externs list in generated asm</label><br>
+            <input type="radio" name="options" value="--allow-undocumented-instructions">
+            <label>allow use of undocumented instruction</label><br>
+            <input type="radio" name="options" value="--fno-omit-frame-pointer">
+            <label>do not omit frame pointer</label><br>
+          </div>
+          <div id="STM8" class="dependent-content">
+            <input type="radio" name="options" value="--model-medium">
+            <label>medium model</label><br>
+            <input type="radio" name="options" value="--model-large">
+            <label>large model</label><br>
+            <input type="radio" name="options" value="--out-fmt-elf">
+            <label>output executable in ELF format</label><br>
+          </div>
+        </div>
+      </form>
+      {% endblock %}
       </div>
     </div>
-      <script src="{% static 'compiler/main.js' %}"></script>
+    <script src="{% static 'compiler/main.js' %}"></script>
   </body>
-</html>
+  </html>

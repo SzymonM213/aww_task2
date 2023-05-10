@@ -1,0 +1,22 @@
+{% block content %}
+<h1>usuń sekcję</h1>
+<form method="POST">
+    {% csrf_token %}
+    <fieldset>
+        <legend><h2>Wybierz sekcję:</h2></legend>
+        {% for section in sections %}
+        {% if section.warning %}
+        <input type="radio" name="id" value="{{ section.id }}">
+        <label style="color: orange;" for="choice{{ forloop.counter }}">{{ section.text}}</label><br>
+        {% elif section.error %}
+        <input type="radio" name="id" value="{{ section.id }}">
+        <label style="color: red;" for="choice{{ forloop.counter }}">{{ section.text }}</label><br>
+        {% else %}
+        <input type="radio" name="id" value="{{ section.id }}">
+        <label for="choice{{ forloop.counter }}">{{ section.text }}</label><br>
+        {% endif %}
+        {% endfor %}
+    </fieldset>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}

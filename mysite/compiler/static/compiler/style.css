@@ -7,19 +7,27 @@
     --code-fragment-bg: #fffdda93;
     --tabs-bg: #fff6de;
     --tabs-color: #ffbb3d;
-    --hover-color: #ffd118;
+    --hover-color: #c7a000;
+    --second-text: #b6b6b6;
+    --active-color: #ffa600;
+    --asm-hover-color: #e8ddaf;
+    --header-hover-color: #c3ba96;
 }
 
 .dark {
-    background-color: #0000b8;
-    --menu-color: #0101bf;
+    background-color: #000000;
+    --menu-color: #000000;
     --text-color: #f1f1f1;
     --file-selector-bg: #002c7d;
     --program-text-bg: #001344;
-    --code-fragment-bg: #474aa1;
+    --code-fragment-bg: #00035f;
     --tabs-bg: #24225d;
     --tabs-color: #00b3ff;
     --hover-color: #625f80;
+    --second-text: #b6b6b6;
+    --active-color: #00b3ff;
+    --asm-hover-color: #827cc7;
+    --header-hover-color: #4b467e;
 }
 
 html {
@@ -182,17 +190,6 @@ textarea {
     box-sizing: border-box;
 }
 
-.trapezium {
-    width: 80px;
-    height: 100%;
-    border: none;
-    float: left;
-    position: relative;
-    background-color: var(--tabs-color);
-    clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
-    overflow: scroll;
-}
-
 ul {
     list-style: none;
     line-height: 2em;
@@ -303,10 +300,26 @@ ul details[open] > summary::before {
     padding: 12px 16px;
     text-decoration: none;
     display: block;
-    text-align: left;
+    text-align: center;
 }
   
 .dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+.dropdown-content button {
+    width: 100%;
+    background: none;
+    border: none;
+    float: none;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font: inherit;
+    color: var(--text-color);
+}
+  
+.dropdown-content button:hover {
     background-color: #ddd;
 }
   
@@ -322,4 +335,70 @@ ul details[open] > summary::before {
 
 .file:hover {
     background-color: var(--hover-color);
+}
+
+.file_name {
+    color: var(--second-text);
+    margin-left: 10px;
+}
+
+.tabs button {
+    width: 125px;
+    height: 100%;
+    border: none;
+    float: left;
+    position: relative;
+    background-color: var(--tabs-color);
+    clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
+    overflow: scroll;
+}
+
+.tabs button:hover {
+    background-color: var(--hover-color);
+}
+
+.tabs button.active {
+    background-color: var(--active-color);
+    box-shadow: 0 9px #999;
+}
+
+.tab-content {
+    display: none;
+    padding: 6px 12px;
+    border-top: none;
+}
+
+.dependent-content {
+    display: none;
+}
+
+.code-fragment {
+    overflow: scroll;
+    /* font-size: small; */
+    resize: none;
+    width: 100%;
+    height: 100%;
+    border: none;
+    color: var(--text-color);
+    white-space: pre;
+}
+
+.asm-section {
+    margin-left: 5px;
+}
+
+.asm-section:hover {
+    background-color: var(--asm-hover-color);
+}
+
+.asm-section:hover .asm-section-header {
+    background-color: var(--header-hover-color);
+}
+
+.code-fragment-raw {
+    display: none;
+}
+
+.filename {
+    display: none;
 }

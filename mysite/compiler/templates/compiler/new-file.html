@@ -1,6 +1,6 @@
 <form action="{% url 'compiler:add_file' %}" method="post" enctype="multipart/form-data">
 {% for dir in directories %}
-    <input type="radio" name="parent" value="{{ dir.id }}">
+    <input type="radio" name="parent" value="{{ dir.id }}" required>
     <label for="choice{{ forloop.counter }}">{{ dir.name }}</label><br>
 {% endfor %}
     {% csrf_token %}
