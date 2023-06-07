@@ -28,7 +28,10 @@ class Directory(models.Model):
     def tree(self):
         if not self.access:
             return ""
-        result = '<li class="directory">' + '<details><summary>' + self.name.replace('<', '&lt;').replace('>', '&gt;') + '</summary>'
+        result = f'<li class="directory" id="li-dir-{str(self.id)}">' + '<details><summary>' + self.name.replace('<', '&lt;').replace('>', '&gt;')  + f'<button class="fa fa-trash-o" onclick="deleteDir({str(self.id)})"></button>' + f'<button class="fa fa-file-medical" onclick="createFile({str(self.id)})"></button>' + f'<button class="fa fa-folder-plus" onclick="createDir({str(self.id)})"></button>'
+        # result += f'<button class="fa fa-file-upload" onclick="uploadFile(event, {str(self.id)})"></button>' + '</summary>'
+        result +=  f'<label for="fileInput" id="fileLabel" class="fa fa-file-upload" onclick="handleFileSelect({str(self.id)})"></label> <input type="file" id="fileInput-{str(self.id)}" onchange="uploadFile(event, {str(self.id)})" style="display: none;">' + '</summary>'
+
         if self.directory_set != []:
             result += '<ul>'
             for element in self.directory_set.all():
@@ -82,21 +85,21 @@ class Section(models.Model):
         lines = text.split('\n')
         i = 0
         while i < len(lines):
-            if lines[i][0:2] ==  "//":
-                current_begin = i+1
-                while i < len(lines) and lines[i][0:2] ==  "//":
-                    current_section_text += lines[i] + '\n'
-                    i += 1
-                result.append(Section(text=current_section_text, type='comment', begin=current_begin, end=i, file=file))
-                current_section_text = ''
-            elif lines[i][0:2] ==  "/*":
-                current_begin = i
-                while i < len(lines) and "*/" not in lines[i-1]:
-                    current_section_text += lines[i] + '\n'
-                    i += 1
-                result.append(Section(text=current_section_text, type='comment', begin=current_begin, end=i+1, file=file))
-                current_section_text = ''
-            elif 'void ' in lines[i] or lines[i] == "{":
+            # if lines[i]:
+            #     current_begin = i+1
+            #     while i < len(lines) and lines[i][0:2] ==  "//":
+            #         current_section_text += lines[i] + '\n'
+            #         i += 1
+            #     result.append(Section(text=current_section_text, type='comment', begin=current_begin, end=i, file=file))
+            #     current_section_text = ''
+            # elif lines[i][0:2] ==  "/*":
+            #     current_begin = i
+            #     while i < len(lines) and "*/" not in lines[i-1]:
+            #         current_section_text += lines[i] + '\n'
+            #         i += 1
+            #     result.append(Section(text=current_section_text, type='comment', begin=current_begin, end=i+1, file=file))
+            #     current_section_text = ''
+            if 'void ' in lines[i] or lines[i] == "{":
                 current_begin = i+1
                 result.append(Section(text=lines[i] + '\n', type='procedure', begin=current_begin, end=i+1, file=file))
                 current_section_text = ''
@@ -154,7 +157,7 @@ class File(models.Model):
 
     def tree(self):
         if self.access:
-            return '<li><button class="file" type="submit" name="new_file" value="' + str(self.id) + '">' + self.name.replace('<', '&lt;').replace('>', '&gt;') + '</button></li>'
+            return f'<li class="file-class" id="li-file-{str(self.id)}"><button class="file" type="submit" name="new_file" value="{str(self.id)}" onclick = "showFile({str(self.id)})">' + self.name.replace('<', '&lt;').replace('>', '&gt;') + f'<button class="fa fa-trash-o" onclick="deleteFile({str(self.id)})"></button>' + '</button></li>'
         else:
             return ""
     
@@ -205,46 +208,43 @@ class File(models.Model):
                         section.status_data = error_details
                         section.save()
         os.remove(str(self.id) + '.c')
-        if os.path.isfile(str(self.id) + '.asm') and p.returncode == 0:
+        if os.path.isfile(str(self.id) + '.asm'):
             f = open(str(self.id) + '.asm', 'r')
             result = f.read()
             f.close()
             os.remove(str(self.id) + '.asm')
             return result
-        return 'error'
+        return p.stderr.decode('utf-8')
     
     def display_compilation(self, text):
         first_line = 1
         text = text.splitlines()
         result = ""
+        section_cnt = -1
         for line in text:
             if line == ";--------------------------------------------------------":
                 if first_line:
                     if result != "":
-                        result += "</div>"
-                    result += "<div class='asm-section'>"
-                    result += "<div class='asm-section-header'>"
+                        result += "</div></div>"
+                    section_cnt += 1
+                    result += f'<div class="asm-section" id="section-{section_cnt}">'
+                    result += f'<div class="asm-section-header" onclick="sectionDisplay({section_cnt})">'
                     result += line + '\n'
                     first_line = 0
                 else:
                     result += line + '\n'
-                    result += "</div>"
+                    result += "</div><div class='asm-section-content'>"
                     first_line = 1
+            elif '.c:' in line:
+                number = line.split(':')[1][0]
+                result += f'<div onmousedown=colorLine({number}) onmouseup=unColorLine({number})>' + line + '</div>' + '\n'
             else:
                 result += line + '\n'
         if "<div" in result:
-            return result + "</div>"
+            return result + "</div></div>"
         else:
             return result
     
     def delete(self):
         self.access = False
         self.last_access_change = timezone.now()
-
-    def debug(self):
-        for section in self.section_set.all():
-            if section.status == 'error':
-                return "git"
-            if section.status == 'warning':
-                return "git"
-        return "niegit"

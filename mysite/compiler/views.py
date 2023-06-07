@@ -7,7 +7,10 @@ from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.db.models import QuerySet
 from .forms import UploadFileForm
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 
 import datetime
 
@@ -16,122 +19,14 @@ from django.views import generic
 
 @login_required(login_url="/accounts/login/")
 def index(request):
-    file = None
-    compile_result = None
-    compile_result_display = None
-    nasm_filename = None
-    if request.method == 'POST':
-        file_id = request.POST.get('file')
-        if file_id != None:
-            print(file_id)
-            file = File.objects.get(id=file_id)
-        if request.POST.get('remove_section') != None:
-            context = {'file': file}
-            return render(request, 'compiler/remove-section.html', context)
-        content = request.POST.get('content')
-        if file and content != None:
-            file.update_content(content)
-        new_file_id = request.POST.get('new_file')
-        if new_file_id != None:
-            file = File.objects.get(id=new_file_id)
-        if file:
-            nasm_filename = file.name[:-1] + 'asm'
-        if request.POST.get('compile') != None:
-            args = []
-            standard = request.POST.get('standard')
-            if standard != None:
-                args.append(standard)
-            processor = request.POST.get('processor')
-            args.append(processor)
-            if request.POST.get('nogcse'):
-                args.append('--nogcse')
-            if request.POST.get('noinvariant'):
-                args.append('--noinvariant')
-            if request.POST.get('noinduction'):
-                args.append('--noinduction')
-            options = request.POST.get('options')
-            if options != None:
-                args.append(options)
-            compile_result = file.compile(args)
-            compile_result_display = file.display_compilation(compile_result)
     if len(request.user.directory_set.all()) == 0:
         d = Directory(name="root", owner=request.user)
         d.save()
     root = request.user.directory_set.all().get(parent = None)
-    context = {'root': root, 'file': file, 'compile_result': compile_result, 
-               'compile_result_display': compile_result_display, 'nasm_filename': nasm_filename}
+    context = {"root": root, "file": file}
     return render (
         request,
         'compiler/index.html',
-        context,
-    )
-
-def add_directory(request):
-    if request.method == 'POST':
-        name = request.POST.get('element_name')
-        parent_id = request.POST.get('parent')
-        parent = Directory.objects.get(id=parent_id)
-        if parent != None:
-            parent.last_content_change = datetime.datetime.now()
-        d = Directory(name=name, parent=parent, owner=request.user)
-        d.save()
-        parent.save()
-        return redirect('compiler:index')
-    context = {'directories': request.user.directory_set.all(), 'element': 'katalog'}
-    return render (
-        request,
-        'compiler/new-directory.html',
-        context,
-    )
-
-def add_file(request):
-    if request.method == 'POST':
-        parent_id = request.POST.get('parent')
-        parent = Directory.objects.get(id=parent_id)
-        file = request.FILES['file']
-        content = file.read().decode('latin-1')
-        if parent_id != "":
-            parent = Directory.objects.get(id=parent_id)
-            parent.last_content_change = datetime.datetime.now()
-            f = File(name=file.name, parent=parent, owner=request.user)
-            f.save()
-            parent.save()
-        else:
-            f = File(name=file.name, owner=request.user)
-            f.save()
-        f.update_content(content)
-        return redirect('compiler:index')
-    context = {'directories': request.user.directory_set.all(), 'element': 'plik'}
-    return render (
-        request,
-        'compiler/new-file.html',
-        context,
-    )
-
-def remove_directory(request):
-    if request.method == 'POST':
-        d = Directory.objects.get(id = request.POST.get('id'))
-        d.parent.change()
-        d.delete()
-        d.save()
-        return redirect('compiler:index')
-    context = {'elements': request.user.directory_set.all(), 'element': 'katalog'}
-    return render (
-        request,
-        'compiler/remove-element.html',
-        context,
-    )
-
-def remove_file(request):
-    if request.method == 'POST':
-        f = File.objects.get(id = request.POST.get('id'))
-        f.delete()
-        f.save()
-        return redirect('compiler:index')
-    context = {'elements': request.user.file_set.all(), 'element': 'plik'}
-    return render (
-        request,
-        'compiler/remove-element.html',
         context,
     )
 
@@ -139,14 +34,92 @@ def logout_view(request):
     logout(request)
     return redirect('compiler:index')
 
-def remove_section(request):
+def file(request, file_id):
+    if file_id < 0:
+        return JsonResponse({'success': False})
+    file = File.objects.get(id=file_id)
+    file_data = {
+        'name': file.path(),
+        'content': file.content(),
+        'success': True,
+    }
+    return JsonResponse(file_data)
+
+@csrf_exempt
+def save_file(request, file_id):
+    file = File.objects.get(id=file_id)
+    content = json.loads(request.body).get('content', '')
+    print("content:", content)
+    file.update_content(content)
+    return JsonResponse({'success': True})
+
+@csrf_exempt
+def create_dir(request, dir_id):
+    if dir_id == 0:
+        parent = request.user.directory_set.all().get(parent = None)
+    else:
+        parent = Directory.objects.get(id=dir_id)
+    if json.loads(request.body):
+        name = json.loads(request.body).get('name', '')
+    else:
+        name = "New directory"
+    d = Directory(name=name, parent=parent, owner=request.user)
+    d.save()
+    print("chuj")
+    data = {'success': True, 'id': d.id}
+    return JsonResponse(data)
+
+@csrf_exempt
+def create_file(request, dir_id):
+    if dir_id == 0:
+        parent = request.user.directory_set.all().get(parent = None)
+    else:
+        parent = Directory.objects.get(id=dir_id)
+    name = json.loads(request.body).get('name', '')
+    content = json.loads(request.body).get('content', '')
+    f = File(name=name, parent=parent, owner=request.user)
+    f.save()
+    print("chuj" + str(dir_id))
+    f.update_content(content)
+    data = {'success': True, 'id': f.id}
+    return JsonResponse(data)
+
+@csrf_exempt
+def delete_file(request, file_id):
+    file = File.objects.get(id=file_id)
+    if file == None:
+        return JsonResponse({'success': False})
+    file.delete()
+    file.save()
+    return JsonResponse({'success': True})
+
+@csrf_exempt
+def delete_dir(request, dir_id):
+    dir = Directory.objects.get(id=dir_id)
+    if dir == None:
+        return JsonResponse({'success': False})
+    dir.delete()
+    dir.save()
+    return JsonResponse({'success': True})
+
+@csrf_exempt
+def compile_file(request, file_id):
+    file = File.objects.get(id=file_id)
+    compile_result = file.compile([])
+    compile_result_display = file.display_compilation(compile_result)
+    return JsonResponse({'success': True, 'result': compile_result, 'result_display': compile_result_display, 'file_name': file.name})
+
+def register(request):
     if request.method == 'POST':
-        section = Section.objects.get(id = request.POST.get('id'))
-        section.delete()
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+        if password != password2:
+            return render(request, 'compiler/register.html', {'error': 'Hasła nie są takie same'})
+        if User.objects.filter(username=username).exists():
+            return render(request, 'compiler/register.html', {'error': 'Użytkownik o takiej nazwie już istnieje'})
+        user = User.objects.create_user(username=username, password=password)
+        user.save()
         return redirect('compiler:index')
-    context = {'sections': File.objects.get(id = request.GET.get('file_id')).section_set.all()}
-    return render (
-        request,
-        'compiler/remove-section.html',
-        context,
-    )
+    return render(request, 'compiler/register.html')
+

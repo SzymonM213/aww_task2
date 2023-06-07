@@ -6,6 +6,13 @@
     <title>Compiler</title>
     {% load static %}
     <link href="{% static 'compiler/style.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css">
+    <script src="https://kit.fontawesome.com/75be4423cf.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/mode/javascript/javascript.min.js"></script>
+    <script src="codemirror.js"></script>
+    <src="mode/javascript/javascript.js"></script>
   </head>
   <body>
     <div class="grid-container">
@@ -15,17 +22,14 @@
             <i class="fa fa-caret-down"></i>
           </button>
           <div class="dropdown-content">
-            {% block content %}
-            <form method="POST">
-              {% csrf_token %}
-            {% if file %}
-              <input type="hidden" name="file" value="{{ file.id }}">
-              <button type="submit">Zapisz</button>
-              <button type="submit" name="compile">Kompiluj</button>
-              {% comment %} <a href="{% url 'compiler:remove_section' %}" onclick="document.querySelector('form').submit();">Usuń sekcję</a {% endcomment %}
-              <a href="{% url 'compiler:remove_section' %}?file_id={{ file.id }}">Usuń sekcję</a>
-            {% endif %}
-            {% if compile_result_display %}<button onclick="downloadNasm()">Pobierz wynik kompilacji</a>{% endif %}
+            {% comment %} {% block content %} {% endcomment %}
+            {% comment %} <form method="POST"> {% endcomment %}
+              <input type="hidden" name="" value="" id="file-id">
+              <button onclick="saveFile()">Zapisz</button>
+              <button onclick="compile()" name="compile">Kompiluj</button>
+            {% comment %} </form> {% endcomment %}
+            {% comment %} {% endblock %} {% endcomment %}
+              <button onclick="downloadNasm()">Pobierz wynik kompilacji</button>
           </div>
         </div> 
         <div class="dropdown">
@@ -33,10 +37,12 @@
             <i class="fa fa-caret-down"></i>
           </button>
           <div class="dropdown-content">
-            <a href="{% url 'compiler:add_directory' %}">Dodaj Katalog</a>
+            <button onclick="createDir(0)">Dodaj Katalog</button>
+            <button onclick="createFile(0)">Dodaj Plik</button>
+            {% comment %} <a href="{% url 'compiler:add_directory' %}">Dodaj Katalog</a>
             <a href="{% url 'compiler:add_file' %}">Dodaj Plik</a>
             <a href="{% url 'compiler:remove_directory' %}">Usuń Katalog</a>
-            <a href="{% url 'compiler:remove_file' %}">Usuń Plik</a>
+            <a href="{% url 'compiler:remove_file' %}">Usuń Plik</a> {% endcomment %}
           </div>
         </div> 
         <div class="dropdown">
@@ -44,9 +50,8 @@
             <i class="fa fa-caret-down"></i>
           </button>
           <div class="dropdown-content">
-            <a href="#">Link 1</a>
-            <a href="#">Link 2</a>
-            <a href="#">Link 3</a>
+            <button onclick="hideSections()">Ukryj sekcje</button>
+            <button onclick="showSections()">Rozwiń sekcje</button>
           </div>
         </div> 
         <div class="dropdown">
@@ -76,10 +81,10 @@
 
       <div class="program-text">
         <label class="file_name">{{ file.path }}</label>
-        <textarea name="content">{% if file %}{{ file.content }}{% endif %}</textarea>
+        <textarea id="code" name="content">{% if file %}{{ file.content }}{% endif %}</textarea>
       </div>
       
-      <div class="filename" id="nasm-filename">{% if file %}{{ nasm_filename | safe }}{% endif %}</div>
+      <div class="filename" id="nasm-filename"></div>
       <div class="code-fragment-raw" id="to-download">{% if compile_result %}{{ compile_result | safe}}{% endif %}</div>
       <div class="code-fragment">{% if compile_result_display %}{{ compile_result_display | safe}}{% endif %}</div>
       <div class="tabs">
@@ -99,11 +104,11 @@
           </button>
         </div>
         <div id="STANDARD" class="tab-content">
-          <input type="radio" name="standard" value="--std-c89">
+          <input type="radio" name="standard" value="--std-c89" onclick="setStandard('--std-c89')">
           <label>C89</label><br>
-          <input type="radio" name="standard" value="--std-c99">
+          <input type="radio" name="standard" value="--std-c99" onclick="setStandard('--std-c89')">
           <label>C99</label><br>
-          <input type="radio" name="standard" value="--std-c11">
+          <input type="radio" name="standard" value="--std-c11" onclick="setStandard('--std-c89')">
           <label>C11</label><br>
         </div>
         <div id="OPTYMALIZACJE" class="tab-content">
@@ -150,8 +155,6 @@
             <label>output executable in ELF format</label><br>
           </div>
         </div>
-      </form>
-      {% endblock %}
       </div>
     </div>
     <script src="{% static 'compiler/main.js' %}"></script>

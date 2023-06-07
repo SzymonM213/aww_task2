@@ -1,0 +1,15 @@
+{% block content %}
+
+{{ error }}
+
+<form method="post" action="{% url 'compiler:register' %}">
+    {% csrf_token %}
+    <h2>Nazwa Użytkownika: </h2>
+    <input type="text" name="username" placeholder="Nazwa" required>
+    <h2>Hasło: <h2>
+    <input type="password" name="password" placeholder="Hasło" required>
+    <h2>Powtórz Hasło: </h2>
+    <input type="password" name="password2" placeholder="Powtórz Hasło" required>
+    <input type="submit" value="login" />
+</form>
+{% endblock %}
